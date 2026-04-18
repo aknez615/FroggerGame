@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -10,33 +11,29 @@ public class Player : MonoBehaviour
     private float lastRow;
     private bool cooldown;
 
+    public PlayerMovement playerInput;
+    public InputAction movement;
+
     private void Awake()
     {
+        playerInput = new PlayerMovement();
         spawnPoint = transform.position;
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        if (Input.GetKeyDown(KeyCode.W))
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-            Move(Vector3.up);
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 90f);
-            Move(Vector3.left);
-        }
-        else if (Input.GetKeyDown(KeyCode.S))
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 180f);
-            Move(Vector3.down);
-        }
-        else if (Input.GetKeyDown(KeyCode.D))
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 270f);
-            Move(Vector3.right);
-        }
+        movement = playerInput.Movement.WASD;
+        movement.Enable();
+    }
+
+    private void OnDisable()
+    {
+        movement.Disable();
+    }
+
+    private void FixedUpdate()
+    {
+        Move(movement.ReadValue<Vector2>());
     }
 
     private void Move(Vector3 direction)
@@ -48,13 +45,6 @@ public class Player : MonoBehaviour
         Vector3 destination = transform.position + direction;
 
         Collider2D platform = Physics2D.OverlapBox(destination, Vector2.one * 0.5f, 0f, LayerMask.GetMask("Platform"));
-        Collider2D obstacle = Physics2D.OverlapBox(destination, Vector2.one * 0.5f, 0f, LayerMask.GetMask("Obstacle"));
-        Collider2D barrier = Physics2D.OverlapBox(destination, Vector2.one * 0.5f, 0f, LayerMask.GetMask("Barrier"));
-
-        if (barrier != null)
-        {
-            return;
-        }
 
         //Move player
         transform.position = destination;
@@ -67,13 +57,6 @@ public class Player : MonoBehaviour
         else
         {
             transform.SetParent(null);
-        }
-
-        //Hit obstacle
-        if (obstacle != null && platform == null)
-        {
-            transform.position = destination;
-            Die();
         }
 
         //Progress

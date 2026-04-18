@@ -4,13 +4,15 @@ using UnityEngine;
 
 public class Spawner : MonoBehaviour
 {
-    public GameObject prefab;
+    public List<GameObject> prefab;
     public float spawnRate = 2f;
     public Vector3 direction = Vector3.right;
     public float speed = 2f;
 
     public float spawnX;
     public float spawnY;
+
+    private int poolIndex = 0;
 
     private void Start()
     {
@@ -19,7 +21,15 @@ public class Spawner : MonoBehaviour
 
     private void Spawn()
     {
-        GameObject obj = Instantiate(prefab, transform.position, Quaternion.identity);
+        if(poolIndex > prefab.Count-1)
+        {
+            poolIndex = 0;
+        }
+
+        GameObject obj = prefab[poolIndex];
+        obj.SetActive(true);
+        obj.transform.position = transform.position;
+        obj.transform.rotation = Quaternion.identity;
 
         MoveObstacle obstacle = obj.GetComponent<MoveObstacle>();
         if (obstacle != null)
@@ -27,5 +37,6 @@ public class Spawner : MonoBehaviour
             obstacle.direction = direction;
             obstacle.speed = speed;
         }
+        poolIndex++;
     }
 }
